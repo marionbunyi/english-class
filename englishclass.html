@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>English Class - Pro Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --color-pink: #ffccd5;
+            --color-purple: #8e44ad;
+            --pure-white: #ffffff;
+            --bg-side: #f7f1fb;
+            --canva-teal: #00c4cc;
+        }
+
+        body {
+            margin: 0; font-family: 'Fredoka', sans-serif;
+            background-color: #000; height: 100vh; overflow: hidden;
+        }
+
+        /* --- HOME VIDEO --- */
+        #video-home { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 10; background: black; }
+        #video-home video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- EXIT FLASH OVERLAY --- */
+        #exit-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(255, 255, 255, 0.9); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .flash-text { font-size: 90px; color: var(--color-purple); font-weight: 900; animation: flash 0.4s infinite alternate; }
+        @keyframes flash { from { transform: scale(1); opacity: 1; } to { transform: scale(1.1); opacity: 0.7; } }
+
+        /* --- UI CONTROLS --- */
+        .top-left-controls { position: absolute; top: 15px; left: 15px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
+        .taiwan-clock { background: var(--pure-white); padding: 8px 20px; border-radius: 50px; font-weight: 700; color: var(--color-purple); border: 2px solid var(--color-pink); text-align: center; }
+        .control-btn { background: var(--color-purple); color: white; border: none; padding: 10px; border-radius: 15px; cursor: pointer; font-weight: 700; box-shadow: 0 4px 0px #5e2d70; }
+        
+        .tool-bar { position: absolute; right: 25px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 20px; z-index: 2000; }
+        .tool-icon { 
+            width: 85px; height: 85px; background: white; border: 4px solid var(--color-purple); 
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.2s;
+        }
+        .tool-icon img { width: 60%; height: 60%; object-fit: contain; }
+
+        /* --- RESIZABLE WINDOWS --- */
+        .floating-window {
+            position: absolute; background: white; border: 4px solid var(--color-purple);
+            border-radius: 25px; padding: 15px; display: none; flex-direction: column;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2); z-index: 3000; overflow: hidden; resize: both; 
+            min-width: 250px; min-height: 200px;
+        }
+        .window-header { display: flex; justify-content: space-between; align-items: center; cursor: move; background: #f0f0f0; padding: 10px; border-radius: 15px; margin-bottom: 10px; }
+        
+        /* --- MAIN DASHBOARD --- */
+        .main-view { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 500; display: none; justify-content: center; align-items: center; background: rgba(0,0,0,0.5); }
+        .content-card { background: white; width: 92%; height: 85%; border-radius: 40px; border: 8px solid var(--color-pink); display: flex; overflow: hidden; }
+        .side-tabs { width: 140px; background: var(--bg-side); display: flex; flex-direction: column; padding: 10px; gap: 10px; }
+        .side-btn { flex: 1; border: none; background: white; cursor: pointer; font-family: 'Fredoka'; font-weight: 700; border-radius: 15px; writing-mode: vertical-rl; transform: rotate(180deg); font-size: 18px; }
+        .side-btn.active { background: var(--color-purple); color: white; }
+        .card-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .sub-section { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
+        .sub-section.active { display: flex; }
+
+        .drop-zone { width: 350px; height: 120px; border: 4px dashed var(--color-purple); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 35px; background: #fdfdfd; margin: 20px; }
+        .emoji-bank { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        .draggable-item { font-size: 60px; cursor: pointer; padding: 10px; transition: transform 0.2s; }
+        .draggable-item:hover { transform: scale(1.2); }
+        .mood-jar { width: 500px; height: 300px; border: 6px solid var(--color-purple); border-top: none; border-radius: 0 0 120px 120px; display: flex; flex-wrap: wrap; align-content: flex-end; justify-content: center; padding: 20px; }
+
+        #whiteboard { width: 100%; height: 100%; background: #fff; touch-action: none; cursor: crosshair; }
+        .win-btn { background: var(--color-purple); color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-family: 'Fredoka'; font-weight: bold; margin-top: 10px; }
+        .bottom-nav { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 20px; z-index: 2000; }
+        .nav-main-btn { padding: 15px 40px; font-size: 22px; font-weight: 700; border-radius: 50px; border: none; cursor: pointer; color: white; box-shadow: 0 6px 0px rgba(0,0,0,0.2); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div id="video-home">
+        <video id="bg-video" loop autoplay muted playsinline><source src="front page.mp4" type="video/mp4"></video>
+    </div>
+
+    <div id="exit-overlay">
+        <div class="flash-text">Goodbye Everyone! 👋</div>
+    </div>
+
+    <div class="top-left-controls">
+        <div class="taiwan-clock" id="clock">--:--:--</div>
+        <button class="control-btn" onclick="goHome()">🏠 HOME</button>
+        <button class="control-btn" style="background:#95a5a6" onclick="toggleWin('win-settings')">⚙️ CACHE</button>
+    </div>
+
+    <div class="tool-bar">
+        <div class="tool-icon" onclick="toggleMusic()"><img src="https://cdn-icons-png.flaticon.com/512/3844/3844724.png"></div>
+        <div class="tool-icon" onclick="toggleWin('win-draw')"><img src="https://cdn-icons-png.flaticon.com/512/588/588395.png"></div>
+        <div class="tool-icon" onclick="toggleWin('win-pick')"><img src="https://cdn-icons-png.flaticon.com/512/8230/8230752.png"></div>
+        <div class="tool-icon" onclick="toggleWin('win-time')"><img src="https://cdn-icons-png.flaticon.com/512/10044/10044199.png"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <a id="canva-link-btn" href="#" target="_blank" class="nav-main-btn" style="background:var(--canva-teal)">Let's Learn 🎨</a>
+        <button class="nav-main-btn" style="background:#6c5ce7" onclick="startLesson()">Start 🚀</button>
+        <button class="nav-main-btn" style="background:#ff7675" onclick="exitClass()">Exit Class 👋</button>
+    </div>
+
+    <div id="lesson-view" class="main-view">
+        <div class="content-card">
+            <div class="side-tabs">
+                <button class="side-btn active" onclick="switchSub(event, 'greet-sub')">Greetings</button>
+                <button class="side-btn" onclick="switchSub(event, 'weather-sub')">Weather</button>
+                <button class="side-btn" onclick="switchSub(event, 'mood-sub')">Feeling</button>
+            </div>
+            <div class="card-body">
+                <div id="greet-sub" class="sub-section active">
+                    <h1 id="greet-text" style="font-size: 70px; color: var(--color-purple);">Hello!</h1>
+                    <div style="display:flex; gap:20px;">
+                        <button class="nav-main-btn" style="background:#f1c40f" onclick="setGreet('Good Morning')">Good Morning ☀️</button>
+                        <button class="nav-main-btn" style="background:#e67e22" onclick="setGreet('Good Afternoon')">Good Afternoon ☕</button>
+                    </div>
+                </div>
+                <div id="weather-sub" class="sub-section">
+                    <h2 style="font-size: 45px;">How is the weather?</h2>
+                    <div style="font-size: 55px; font-weight: bold;">It is <span id="weather-word" style="color:var(--color-purple); text-decoration: underline;">_______</span>.</div>
+                    <div class="drop-zone" ondrop="dropWeather(event)" ondragover="allowDrop(event)">Drop or Click below</div>
+                    <div class="emoji-bank">
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" onclick="applyWeather('Sunny')" id="Sunny">☀️</div>
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" onclick="applyWeather('Rainy')" id="Rainy">🌧️</div>
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" onclick="applyWeather('Cloudy')" id="Cloudy">☁️</div>
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" onclick="applyWeather('Stormy')" id="Stormy">⛈️</div>
+                    </div>
+                </div>
+                <div id="mood-sub" class="sub-section">
+                    <h2 style="font-size: 45px;">How are you feeling?</h2>
+                    <div class="emoji-bank">
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="Happy">😊</div>
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="Excited">🤩</div>
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="Sleepy">😴</div>
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="Great">😎</div>
+                    </div>
+                    <div class="mood-jar" ondrop="dropMood(event)" ondragover="allowDrop(event)"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="win-settings" class="floating-window" style="top:100px; left:100px; width:350px;">
+        <div class="window-header" onmousedown="dragWin(event, 'win-settings')"><span>Settings (Cached)</span><span onclick="toggleWin('win-settings')">✕</span></div>
+        <input type="text" id="canva-url" style="width:90%; padding:10px; border-radius:10px;" placeholder="Paste Link Here...">
+        <button class="win-btn" onclick="saveSettings()">Save & Update</button>
+    </div>
+
+    <div id="win-draw" class="floating-window" style="top:50px; left:200px; width:600px; height:450px;">
+        <div class="window-header" onmousedown="dragWin(event, 'win-draw')"><span>Whiteboard</span><span onclick="toggleWin('win-draw')">✕</span></div>
+        <canvas id="whiteboard"></canvas>
+        <button class="win-btn" style="background:#e74c3c" onclick="clearBoard()">Clear</button>
+    </div>
+
+    <div id="win-pick" class="floating-window" style="top:150px; left:350px; width:300px;">
+        <div class="window-header" onmousedown="dragWin(event, 'win-pick')"><span>Dice Picker</span><span onclick="toggleWin('win-pick')">✕</span></div>
+        <div style="text-align:center">
+             <input type="number" id="pick-max" value="25" style="width:60px; font-size:20px;">
+             <div id="pick-res" style="font-size:90px; color:#e67e22;">?</div>
+             <button class="win-btn" onclick="rollDice()">Roll!</button>
+        </div>
+    </div>
+
+    <div id="win-time" class="floating-window" style="top:250px; left:450px; width:280px;">
+        <div class="window-header" onmousedown="dragWin(event, 'win-time')"><span>Timer</span><span onclick="toggleWin('win-time')">✕</span></div>
+        <div style="text-align:center">
+            <input type="number" id="tm" value="1" style="width:40px;">m <input type="number" id="ts" value="0" style="width:40px;">s
+            <div id="timer-display" style="font-size:60px; color:#e74c3c;">01:00</div>
+            <button class="win-btn" id="t-btn" onclick="toggleTimer()">Start</button>
+        </div>
+    </div>
+
+    <audio id="bg-music" loop src="https://raw.githubusercontent.com/marionbunyi/english-class/main/background%20sound%20(2).mp3"></audio>
+
+    <script>
+        // --- CLOCK ---
+        function updateClock() {
+            const now = new Date();
+            let h = now.getHours(), m = String(now.getMinutes()).padStart(2, '0'), ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12; document.getElementById('clock').innerText = `${h}:${m} ${ampm}`;
+        }
+        setInterval(updateClock, 1000);
+
+        // --- CACHE LOGIC ---
+        function saveSettings() {
+            const val = document.getElementById('canva-url').value;
+            localStorage.setItem('my_canva_link', val);
+            document.getElementById('canva-link-btn').href = val || '#';
+            alert("Saved to Cache!");
+        }
+
+        window.onload = () => {
+            updateClock();
+            const cached = localStorage.getItem('my_canva_link');
+            if(cached) {
+                document.getElementById('canva-url').value = cached;
+                document.getElementById('canva-link-btn').href = cached;
+            }
+        };
+
+        // --- NAVIGATION ---
+        function goHome() { document.getElementById('video-home').style.display = 'block'; document.getElementById('lesson-view').style.display = 'none'; }
+        function startLesson() { document.getElementById('video-home').style.display = 'none'; document.getElementById('lesson-view').style.display = 'flex'; }
+        function switchSub(e, id) {
+            document.querySelectorAll('.sub-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            if(id === 'win-draw') initBoard();
+        }
+
+        // --- GREETINGS & EXIT ---
+        function setGreet(txt) {
+            document.getElementById('greet-text').innerText = (txt === 'Good Morning') ? 'Good Morning! ☀️' : 'Good Afternoon! ☕';
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(txt));
+        }
+
+        function exitClass() {
+            const overlay = document.getElementById('exit-overlay');
+            overlay.style.display = 'flex';
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance("Goodbye everyone!"));
+            confetti({ particleCount: 300, spread: 150, origin: { y: 0.5 } });
+            setTimeout(() => { overlay.style.display = 'none'; goHome(); }, 3500);
+        }
+
+        // --- WEATHER (CLICK OR DROP) ---
+        function applyWeather(id) {
+            document.getElementById('weather-word').innerText = id;
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(`It is ${id} today`));
+        }
+        function dropWeather(ev) { ev.preventDefault(); applyWeather(ev.dataTransfer.getData("text")); }
+
+        function dropMood(ev) {
+            ev.preventDefault();
+            const id = ev.dataTransfer.getData("text");
+            const span = document.createElement('span');
+            span.innerText = document.getElementById(id).innerText; span.style.fontSize = "50px";
+            ev.target.appendChild(span);
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(`I feel ${id}`));
+        }
+
+        function allowDrop(ev) { ev.preventDefault(); }
+        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
+
+        // --- WHITEBOARD & TOOLS ---
+        let canvas, ctx, drawing = false;
+        function initBoard() {
+            canvas = document.getElementById('whiteboard'); ctx = canvas.getContext('2d');
+            const res = () => { canvas.width = canvas.parentElement.offsetWidth - 30; canvas.height = canvas.parentElement.offsetHeight - 120; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.strokeStyle = '#8e44ad'; };
+            new ResizeObserver(res).observe(canvas.parentElement);
+            const getXY = (e) => { const r = canvas.getBoundingClientRect(); return [ (e.touches?e.touches[0].clientX:e.clientX) - r.left, (e.touches?e.touches[0].clientY:e.clientY) - r.top ]; };
+            canvas.onmousedown = (e) => { drawing = true; ctx.beginPath(); const [x,y] = getXY(e); ctx.moveTo(x,y); };
+            canvas.onmousemove = (e) => { if(!drawing) return; const [x,y] = getXY(e); ctx.lineTo(x,y); ctx.stroke(); };
+            window.onmouseup = () => drawing = false;
+        }
+        function clearBoard() { ctx.clearRect(0,0,canvas.width, canvas.height); }
+
+        let timerItv;
+        function toggleTimer() {
+            const btn = document.getElementById('t-btn');
+            if(timerItv) { clearInterval(timerItv); timerItv = null; btn.innerText = "Start"; return; }
+            let total = (parseInt(document.getElementById('tm').value)*60) + parseInt(document.getElementById('ts').value);
+            btn.innerText = "Stop";
+            timerItv = setInterval(() => {
+                if(total <= 0) { clearInterval(timerItv); alert("Time up!"); btn.innerText = "Start"; return; }
+                total--;
+                document.getElementById('timer-display').innerText = `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
+            }, 1000);
+        }
+
+        function rollDice() {
+            let c = 0, max = document.getElementById('pick-max').value;
+            const itv = setInterval(() => {
+                document.getElementById('pick-res').innerText = Math.floor(Math.random()*max)+1;
+                if(++c > 15) { clearInterval(itv); confetti({particleCount: 50}); }
+            }, 60);
+        }
+
+        function toggleWin(id) { const w = document.getElementById(id); w.style.display = (w.style.display==='flex') ? 'none' : 'flex'; if(id === 'win-draw') initBoard(); }
+        function dragWin(e, id) {
+            const win = document.getElementById(id); let p3 = e.clientX, p4 = e.clientY;
+            document.onmousemove = (ev) => { win.style.left = (win.offsetLeft - (p3 - ev.clientX)) + "px"; win.style.top = (win.offsetTop - (p4 - ev.clientY)) + "px"; p3 = ev.clientX; p4 = ev.clientY; };
+            document.onmouseup = () => document.onmousemove = null;
+        }
+
+        const music = document.getElementById('bg-music');
+        function toggleMusic() { music.paused ? music.play() : music.pause(); }
+    </script>
+</body>
+</html>
