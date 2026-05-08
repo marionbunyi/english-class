@@ -81,7 +81,9 @@
 <body>
 
     <div id="video-home">
-        <video id="bg-video" loop autoplay muted playsinline><source src="front page.mp4" type="video/mp4"></video>
+        <video id="bg-video" loop autoplay muted playsinline>
+            <source src="https://raw.githubusercontent.com/marionbunyi/english-class/main/front%20page.mp4" type="video/mp4">
+        </video>
     </div>
 
     <div id="exit-overlay">
@@ -140,6 +142,7 @@
                         <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="Excited">🤩</div>
                         <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="Sleepy">😴</div>
                         <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="Great">😎</div>
+                        <div class="draggable-item" draggable="true" ondragstart="drag(event)" id="Sad">😢</div>
                     </div>
                     <div class="mood-jar" ondrop="dropMood(event)" ondragover="allowDrop(event)"></div>
                 </div>
@@ -148,9 +151,9 @@
     </div>
 
     <div id="win-settings" class="floating-window" style="top:100px; left:100px; width:350px;">
-        <div class="window-header" onmousedown="dragWin(event, 'win-settings')"><span>Settings (Cached)</span><span onclick="toggleWin('win-settings')">✕</span></div>
-        <input type="text" id="canva-url" style="width:90%; padding:10px; border-radius:10px;" placeholder="Paste Link Here...">
-        <button class="win-btn" onclick="saveSettings()">Save & Update</button>
+        <div class="window-header" onmousedown="dragWin(event, 'win-settings')"><span>Settings (Cache)</span><span onclick="toggleWin('win-settings')">✕</span></div>
+        <input type="text" id="canva-url" style="width:90%; padding:10px;" placeholder="Paste Canva Link...">
+        <button class="win-btn" onclick="saveSettings()">Save</button>
     </div>
 
     <div id="win-draw" class="floating-window" style="top:50px; left:200px; width:600px; height:450px;">
@@ -162,7 +165,7 @@
     <div id="win-pick" class="floating-window" style="top:150px; left:350px; width:300px;">
         <div class="window-header" onmousedown="dragWin(event, 'win-pick')"><span>Dice Picker</span><span onclick="toggleWin('win-pick')">✕</span></div>
         <div style="text-align:center">
-             <input type="number" id="pick-max" value="25" style="width:60px; font-size:20px;">
+             <input type="number" id="pick-max" value="25" style="width:60px;"> Students
              <div id="pick-res" style="font-size:90px; color:#e67e22;">?</div>
              <button class="win-btn" onclick="rollDice()">Roll!</button>
         </div>
@@ -180,7 +183,6 @@
     <audio id="bg-music" loop src="https://raw.githubusercontent.com/marionbunyi/english-class/main/background%20sound%20(2).mp3"></audio>
 
     <script>
-        // --- CLOCK ---
         function updateClock() {
             const now = new Date();
             let h = now.getHours(), m = String(now.getMinutes()).padStart(2, '0'), ampm = h >= 12 ? 'PM' : 'AM';
@@ -188,35 +190,32 @@
         }
         setInterval(updateClock, 1000);
 
-        // --- CACHE LOGIC ---
         function saveSettings() {
             const val = document.getElementById('canva-url').value;
-            localStorage.setItem('my_canva_link', val);
+            localStorage.setItem('cached_link', val);
             document.getElementById('canva-link-btn').href = val || '#';
-            alert("Saved to Cache!");
+            alert("Link Cached!");
         }
 
         window.onload = () => {
             updateClock();
-            const cached = localStorage.getItem('my_canva_link');
+            const cached = localStorage.getItem('cached_link');
             if(cached) {
                 document.getElementById('canva-url').value = cached;
                 document.getElementById('canva-link-btn').href = cached;
             }
         };
 
-        // --- NAVIGATION ---
         function goHome() { document.getElementById('video-home').style.display = 'block'; document.getElementById('lesson-view').style.display = 'none'; }
         function startLesson() { document.getElementById('video-home').style.display = 'none'; document.getElementById('lesson-view').style.display = 'flex'; }
+        
         function switchSub(e, id) {
             document.querySelectorAll('.sub-section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
             e.currentTarget.classList.add('active');
-            if(id === 'win-draw') initBoard();
         }
 
-        // --- GREETINGS & EXIT ---
         function setGreet(txt) {
             document.getElementById('greet-text').innerText = (txt === 'Good Morning') ? 'Good Morning! ☀️' : 'Good Afternoon! ☕';
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
@@ -227,11 +226,10 @@
             const overlay = document.getElementById('exit-overlay');
             overlay.style.display = 'flex';
             window.speechSynthesis.speak(new SpeechSynthesisUtterance("Goodbye everyone!"));
-            confetti({ particleCount: 300, spread: 150, origin: { y: 0.5 } });
-            setTimeout(() => { overlay.style.display = 'none'; goHome(); }, 3500);
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+            setTimeout(() => { overlay.style.display = 'none'; goHome(); }, 3000);
         }
 
-        // --- WEATHER (CLICK OR DROP) ---
         function applyWeather(id) {
             document.getElementById('weather-word').innerText = id;
             window.speechSynthesis.speak(new SpeechSynthesisUtterance(`It is ${id} today`));
@@ -244,13 +242,11 @@
             const span = document.createElement('span');
             span.innerText = document.getElementById(id).innerText; span.style.fontSize = "50px";
             ev.target.appendChild(span);
-            window.speechSynthesis.speak(new SpeechSynthesisUtterance(`I feel ${id}`));
         }
 
         function allowDrop(ev) { ev.preventDefault(); }
         function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
 
-        // --- WHITEBOARD & TOOLS ---
         let canvas, ctx, drawing = false;
         function initBoard() {
             canvas = document.getElementById('whiteboard'); ctx = canvas.getContext('2d');
@@ -270,7 +266,7 @@
             let total = (parseInt(document.getElementById('tm').value)*60) + parseInt(document.getElementById('ts').value);
             btn.innerText = "Stop";
             timerItv = setInterval(() => {
-                if(total <= 0) { clearInterval(timerItv); alert("Time up!"); btn.innerText = "Start"; return; }
+                if(total <= 0) { clearInterval(timerItv); btn.innerText = "Start"; return; }
                 total--;
                 document.getElementById('timer-display').innerText = `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
             }, 1000);
